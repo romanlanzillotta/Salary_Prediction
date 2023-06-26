@@ -1,0 +1,18 @@
+type: dataset
+files:
+- name: main.py
+  visible: true
+  text: "#  write your code here \n\n"
+  learner_created: false
+- name: data/dataset/input.txt
+  visible: true
+  learner_created: true
+- name: data/dataset/example.csv
+  visible: true
+  learner_created: true
+feedback_link: https://hyperskill.org/learn/step/15043#comment
+status: Solved
+feedback:
+  message: <html>Correct solution</html>
+  time: "Wed, 21 Jun 2023 16:20:27 UTC"
+record: -1

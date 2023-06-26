@@ -1,0 +1,153 @@
+<h2>Linear Regression in sklearn</h2>
+<div class="step-text">
+<p>As you already know, Linear Regression models the output <span class="math-tex">\(Y\)</span>as a linear combination of the inputs  <span class="math-tex">\(X_1, X_2, ..., X_m\)</span>:</p>
+<p style="text-align: center;"><span class="math-tex">\[Y = \alpha_o + \alpha_1 \cdot X_1 + \alpha_2 \cdot X_2 + ... + \alpha_m \cdot X_m\]</span></p>
+<p>The model coefficients <span class="math-tex">\(\alpha_0, \alpha_1, ..., \alpha_m\)</span> are chosen in such a way that the Mean Squared Error (MSE) of the prediction across the available training examples is minimized. In other words, training a linear regression model means solving the following optimization problem:</p>
+<p style="text-align: center;"><span class="math-tex">\[\min \ \frac{1}{n}\sum _{i=1}^n (y_i - \hat{y_i})^2 \ \text{with respect to} \ \alpha_0,...,\alpha_m\]</span></p>
+<p>Luckily, you don't have to solve it manually, since Linear Regression is already implemented in <code class="language-python">sklearn</code>. In this topic, you'll learn how to build such a model on a simple example.</p>
+<h5 id="loading-the-data" style="text-align: center;">Loading the data</h5>
+<p><code class="language-python">sklearn</code> already comes with some built-in datasets that one can use to experiment with different ML models. Let's load one of them, namely <a href="https://scikit-learn.org/stable/modules/generated/sklearn.datasets.fetch_california_housing.html#sklearn-datasets-fetch-california-housing" rel="noopener noreferrer nofollow" target="_blank">the California house prices dataset</a>.</p>
+<pre><code class="language-python">from sklearn.datasets import fetch_california_housing
+data = fetch_california_housing()</code></pre>
+<p>This dataset contains information about housing in California. Along with the median house value for California districts(<code class="language-python">MedHouseVal</code>), expressed in hundreds of thousands of dollars ($100,000), the following 8 features are available for every object:</p>
+<ol>
+<li>
+<p><code class="language-python">MedInc</code> — median income in block group;</p>
+</li>
+<li>
+<p><code class="language-python">HouseAge</code> — median house age in block group;</p>
+</li>
+<li>
+<p><code class="language-python">AveRooms</code> — average number of rooms per household;</p>
+</li>
+<li>
+<p><code class="language-python">AveBedrms</code> — average number of bedrooms per household;</p>
+</li>
+<li>
+<p><code class="language-python">Population</code> — block group population;</p>
+</li>
+<li>
+<p><code class="language-python">AveOccup</code> — average number of household members;</p>
+</li>
+<li>
+<p><code class="language-python">Latitude</code> — block group latitude;</p>
+</li>
+<li>
+<p><code class="language-python">Longitude</code> — block group longitude.</p>
+</li>
+</ol>
+<p>Here are the first 5 rows of the dataset:</p>
+<pre><code class="language-no-highlight">+----+----------+------------+------------+-------------+--------------+------------+------------+-------------+---------------+
+|    |   MedInc |   HouseAge |   AveRooms |   AveBedrms |   Population |   AveOccup |   Latitude |   Longitude |   MedHouseVal |
+|----+----------+------------+------------+-------------+--------------+------------+------------+-------------+---------------|
+|  0 |   8.3252 |         41 |    6.98413 |     1.02381 |          322 |    2.55556 |      37.88 |     -122.23 |         4.526 |
+|  1 |   8.3014 |         21 |    6.23814 |     0.97188 |         2401 |    2.10984 |      37.86 |     -122.22 |         3.585 |
+|  2 |   7.2574 |         52 |    8.28814 |     1.07345 |          496 |    2.80226 |      37.85 |     -122.24 |         3.521 |
+|  3 |   5.6431 |         52 |    5.81735 |     1.07306 |          558 |    2.54795 |      37.85 |     -122.25 |         3.413 |
+|  4 |   3.8462 |         52 |    6.28185 |     1.08108 |          565 |    2.18147 |      37.85 |     -122.25 |         3.422 |
++----+----------+------------+------------+-------------+--------------+------------+------------+-------------+---------------+</code></pre>
+<p>The task is to predict the value of the housing <span class="math-tex">\(Y\)</span> (in $100,000) as a linear combination of the features listed above:</p>
+<p style="text-align: center;"><span class="math-tex">\(Y = \alpha_0 + \alpha_1 \cdot \text{MedInc} + \alpha_2 \cdot \text{HouseAge} + \alpha_3 \cdot \text{AveRooms} + \alpha_4 \cdot \text{AveBedrms} + \alpha_5 \cdot \text{Population} + \alpha_6 \cdot \text{AveOccup} + \alpha_7 \cdot \text{Latitude} + \alpha_8 \cdot \text{Longitude}\)</span></p>
+<p>Let's save the data corresponding to these input features to <code class="language-python">X</code> and the target attribute to <code class="language-python">y</code>:</p>
+<pre><code class="language-python"># Extracting the features
+X = data.data
+# Extracting the target attribute
+Y = data.target</code></pre>
+<table border="1" cellpadding="1" cellspacing="1" style="width: 500px;">
+<tbody>
+<tr>
+</tr>
+</tbody>
+</table>
+<p>The full dataset contains 20640 samples. Let's split this dataset into train and test subsets, leaving 80% of the data for training and the remaining 20% for test:</p>
+<pre><code class="language-python">from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(X, Y, train_size=0.8, random_state=42)</code></pre>
+<p>Alright, now we are ready to train our Linear Regression model!</p>
+<h5 id="training-a-linear-regression-model" style="text-align: center;">Training a Linear Regression model</h5>
+<p>Linear Regression is implemented in the <code class="language-python">linear_model</code> module of <code class="language-python">sklearn</code>. We can therefore import it like this:</p>
+<pre><code class="language-python">from sklearn.linear_model import LinearRegression</code></pre>
+<p>To build a Linear Regression model we should first create a model instance:</p>
+<pre><code class="language-python">model = LinearRegression()</code></pre>
+<p>Then, we can call the <code class="language-python">fit()</code> method to fit the model to the training data available. The method takes in the features and the values of the target. In our example, those are the arrays <code class="language-python">X_train</code> and y_train respectively:</p>
+<pre><code class="language-python">model.fit(X_train, y_train)
+
+# LinearRegression(copy_X=True, fit_intercept=True, n_jobs=None, normalize=False)</code></pre>
+<p>And that's it, your Linear Regression model is trained! Cool, right? Let's inspect the resulting model in more detail.</p>
+<h5 id="inspecting-a-linear-regression-model" style="text-align: center;">Inspecting a Linear Regression model</h5>
+<p>Building a Linear Regression model means estimating the optimal values of the model parameters, which are all the coefficients <span class="math-tex">\(\alpha_1, ..., \alpha_m\)</span>.</p>
+<p>After the model has been fit with the fit() method, you can see the obtained values of the coefficients <span class="math-tex">\(\alpha_1, ..., \alpha_m\)</span> by accessing the <code class="language-python">coef_</code> attribute of the model. It contains a <code class="language-python">numpy</code> array with the coefficient for every input feature. In our case, there are 8 of them:</p>
+<pre><code class="language-no-highlight">+------------+----------------+
+|            |   Coefficients |
+|------------+----------------|
+| MedInc     |    0.448675    |
+| HouseAge   |    0.00972426  |
+| AveRooms   |   -0.123323    |
+| AveBedrms  |    0.783145    |
+| Population |   -2.02962e-06 |
+| AveOccup   |   -0.00352632  |
+| Latitude   |   -0.419792    |
+| Longitude  |   -0.433708    |
++------------+----------------+</code></pre>
+<p>You might have noticed that one coefficient hasn't been included in the <code class="language-python">coef_</code> array, namely the <span class="math-tex">\(\alpha_0\)</span>, also called an intercept. Not all the Linear Regression models have it (we'll learn how to avoid modelling the intercept in a minute), which is why its value is stored in a separate attribute called <code class="language-python">intercept_</code>:</p>
+<pre><code class="language-python">print(model.intercept_)
+
+# -37.02327770606391
+</code></pre>
+<p>Alright, you probably can't wait to actually use the model we've just built. Let's do it!</p>
+<h5 id="making-predictions" style="text-align: center;">Making predictions</h5>
+<p>As you already know, to make predictions with our model, we can use the <code class="language-python">predict()</code> method, passing to it the values of the input features of the instances for which we want to predict the target.</p>
+<p>For example, let's make predictions for all the real estate objects from the training data:</p>
+<pre><code class="language-python">predictions_train = model.predict(X_train)
+</code></pre>
+<p>We'll get predictions of the price of every single object from the training set, 406 estimates in total:</p>
+<pre><code class="language-python">print(predictions_train.shape)
+
+# (16512,)</code></pre>
+<p>Similarly, we can predict the real estate prices for the test samples which were not used for training the model:</p>
+<pre><code class="language-python">predictions_test = model.predict(X_test)</code></pre>
+<p>Here are the plotted residuals of the model on the test data, which are defined as the difference between the true and predicted values of the test samples:</p>
+<p style="text-align: center;"><img alt="A scatter plot with 'Test sample' on the X axis and 'Residual' on the Y axis" height="333" name="residual(3).svg" src="https://ucarecdn.com/bce22aff-3b3e-4d79-b5c9-3b2a86a4c105/" width="500"/></p>
+<p>How good is our model? Does it make accurate predictions? Let's compute some common evaluation metrics to find that out!</p>
+<h5 id="evaluating-the-model" style="text-align: center;">Evaluating the model</h5>
+<p>As you remember, the common evaluation metrics for assessing the quality of the regression models are Mean Squared Error (MSE) or Root Mean Squared Error (RMSE), as well as Mean Absolute Error (MAE).</p>
+<p>You can easily compute it yourself, but the corresponding functions are also implemented in the <code class="language-python">metrics</code> module of  <code class="language-python">sklearn</code>. Let's import them:</p>
+<pre><code class="language-python">from sklearn.metrics import mean_squared_error, mean_absolute_error</code></pre>
+<p>Now, we can compute the MSE of the prediction on the training and test sets with the <code class="language-python">mean_squared_error()</code> function:</p>
+<pre><code class="language-python">mse_train = mean_squared_error(y_train, predictions_train)
+print(mse_train)
+
+# 0.5179331255246699
+
+mse_test = mean_squared_error(y_test, predictions_test)
+print(mse_test)
+
+# 0.5558915986952422</code></pre>
+<p>Obviously, you can compute RMSE by taking a square root of the computed MSE. Since these scores are somewhat difficult to interpret, you might also want to compute the MAE score. This can be done with the <code class="language-python">mean_absolute_error()</code> function:</p>
+<pre><code class="language-python">mae_train = mean_absolute_error(y_train, predictions_train)
+print(mae_train)
+
+# 0.5286283596582376
+
+mae_test = mean_absolute_error(y_test, predictions_test)
+print(mae_test)
+
+# 0.533200130495698
+</code></pre>
+<p>So, on average the prices predicted by our model are about 53 thousand dollars off. Is it any good? Are the predictions accurate enough?</p>
+<p>Well, it's impossible to answer this question just from the MSE or MAE score since it depends on the end goal of the modeling. For example, if you are planning to use this model to get a rough estimate of the price, it's probably good enough. However, if the profit your company will make depends strongly on the quality of the prediction, you would want a better model.</p>
+<h5 id="fitting-a-model-with-no-intercept" style="text-align: center;">Fitting a model with no intercept</h5>
+<p>By default, intercept is included in the Linear Regression equation by <code class="language-python">sklearn</code>. However, as has been mentioned before, sometimes you might prefer to train a linear model without it:</p>
+<p style="text-align: center;"><span class="math-tex">\(Y = \alpha_1 \cdot X_1 + \alpha_2 \cdot X_2 + ... + \alpha_m \cdot X_m\)</span></p>
+<p>To do so, you need to set the value of the <code class="language-python">fit_intercept</code> parameter to False when creating a LinearRegression object:</p>
+<pre><code class="language-python">model = LinearRegression(fit_intercept=False)</code></pre>
+<p>In this case, the model will be fit without the intercept term or, in other words, the value of the corresponding parameter will be explicitly set to 0.</p>
+<p>Note, however, that in principle you should not force the intercept to be zero unless you are certain that this should be the case. Otherwise, this will introduce bias to the model and decrease the quality of its predictions.</p>
+<h5 id="conclusions" style="text-align: center;">Conclusions</h5>
+<p> </p>
+<ul>
+<li>To train a Linear Regression model, use the <code class="language-python">fit()</code> method.</li>
+<li>Once the model has been fit, you can make predictions with the <code class="language-python">predict()</code> method.</li>
+<li>To access the model's parameters, use the <code class="language-python">intercept_</code> argument for the intercept and <code class="language-python">coef_</code> for the other coefficients.</li>
+</ul>
+</div>
